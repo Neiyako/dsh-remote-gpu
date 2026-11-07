@@ -84,7 +84,7 @@ curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8765/gpu
 在 Windows 上**以管理员身份打开 PowerShell**（管理员只用于自动加防火墙规则），执行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm 'https://api.github.com/repos/Neiyako/dsh-remote-gpu/contents/deploy.ps1' -Headers @{'User-Agent'='dsh';'Accept'='application/vnd.github.raw'})"
+powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; iex (irm 'https://api.github.com/repos/Neiyako/dsh-remote-gpu/contents/deploy.ps1?ref=main' -Headers @{'User-Agent'='dsh';'Accept'='application/vnd.github.raw'})"
 ```
 
 脚本会自动：下载仓库 → 建 venv → 安装 FastAPI + **cu128 PyTorch**（RTX 50 系列 Blackwell）
