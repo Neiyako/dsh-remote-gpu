@@ -13,7 +13,7 @@
 Windows 上以**管理员身份**打开 PowerShell，执行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Neiyako/dsh-remote-gpu/main/deploy.ps1 | iex"
+powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $r=Invoke-RestMethod 'https://api.github.com/repos/Neiyako/dsh-remote-gpu/contents/deploy.ps1' -Headers @{'User-Agent'='dsh-remote-gpu'}; iex ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($r.content)))"
 ```
 
 脚本会完成：下载公开仓库 → `%USERPROFILE%\dsh-remote-gpu` → Python venv + FastAPI

@@ -49,6 +49,7 @@
 | `dsh-remote-gpu/` | DSH Host 插件（8 个工具、无第三方依赖） |
 | `e2e/run_e2e.py` | HTTP 层端到端 harness（stdlib urllib，自起 worker） |
 | `e2e/plugin_e2e.mjs` | 插件层端到端 harness（真实 `index.js` + 假 ctx 注册） |
+| `deploy.ps1` | Windows 一键部署脚本（下载/venv/cu128/token/防火墙/启动） |
 | `docs/` | 契约、API、Windows 部署、E2E 验收报告 |
 
 ## 快速开始
@@ -83,7 +84,7 @@ curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8765/gpu
 在 Windows 上**以管理员身份打开 PowerShell**（管理员只用于自动加防火墙规则），执行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Neiyako/dsh-remote-gpu/main/deploy.ps1 | iex"
+powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $r=Invoke-RestMethod 'https://api.github.com/repos/Neiyako/dsh-remote-gpu/contents/deploy.ps1' -Headers @{'User-Agent'='dsh-remote-gpu'}; iex ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($r.content)))"
 ```
 
 脚本会自动：下载仓库 → 建 venv → 安装 FastAPI + **cu128 PyTorch**（RTX 50 系列 Blackwell）
