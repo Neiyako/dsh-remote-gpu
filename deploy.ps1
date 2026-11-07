@@ -173,6 +173,9 @@ Copy-Item -Path (Join-Path $workerDir 'scripts\jobs\hello.py') -Destination $job
 Write-Step '2/6 Configure token'
 $envFile = Join-Path $workerDir '.env'
 if ([string]::IsNullOrWhiteSpace($Token)) {
+    $Token = [Environment]::GetEnvironmentVariable('DSH_GPU_WORKER_TOKEN')
+}
+if ([string]::IsNullOrWhiteSpace($Token)) {
     $Token = Get-ExistingToken -EnvFile $envFile
 }
 if ([string]::IsNullOrWhiteSpace($Token)) {
