@@ -78,9 +78,30 @@ curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8765/health
 curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8765/gpu
 ```
 
-### B. Windows RTX 5060（真实 CUDA）
+### B. Windows RTX 5060 一键部署（推荐）
 
-按 [`docs/DEPLOY-WINDOWS.md`](docs/DEPLOY-WINDOWS.md) 执行：
+在 Windows 上**以管理员身份打开 PowerShell**（管理员只用于自动加防火墙规则），执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Neiyako/dsh-remote-gpu/main/deploy.ps1 | iex"
+```
+
+脚本会自动：下载仓库 → 建 venv → 安装 FastAPI + **cu128 PyTorch**（RTX 50 系列 Blackwell）
+→ 生成 token 并写 `.env`（HOST=0.0.0.0，工作根 `%USERPROFILE%\dsh-remote-gpu\data`）
+→ 后台启动 Worker → 加 8765/TCP 防火墙规则 → 打印 Mac 侧要执行的两行连接命令。
+
+常用参数（完整说明见 [`docs/DEPLOY-WINDOWS.md`](docs/DEPLOY-WINDOWS.md)）：
+
+```powershell
+# 复用 Mac 上已有的 token（推荐，省去两端改 token）
+.\deploy.ps1 -Token '<token>'
+# 只装不启动 / CPU-only / 不改防火墙
+.\deploy.ps1 -StartWorker:$false
+.\deploy.ps1 -InstallTorch:$false
+.\deploy.ps1 -OpenFirewall:$false
+```
+
+也支持手动部署，按 [`docs/DEPLOY-WINDOWS.md`](docs/DEPLOY-WINDOWS.md) 执行：
 
 1. 装 Python 3.10+ → `scripts/install.ps1`；
 2. 装 **CUDA 12.8+ 版 PyTorch**（RTX 50 系列 Blackwell 必须，默认 CPU wheel 或 cu124 可能不匹配）；

@@ -8,6 +8,33 @@
 > 需要真实 Windows 硬件才能完成的验收项**，没有机器就是 `NOT_RUN`，不要用本机结果冒充。
 > HTTP 契约见 [`API.md`](./API.md)，冻结契约见 [`CONTRACT.md`](./CONTRACT.md)。
 
+## 一键部署（推荐）
+
+Windows 上以**管理员身份**打开 PowerShell，执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Neiyako/dsh-remote-gpu/main/deploy.ps1 | iex"
+```
+
+脚本会完成：下载公开仓库 → `%USERPROFILE%\dsh-remote-gpu` → Python venv + FastAPI
+→ **cu128 PyTorch**（RTX 50 系列必需）→ 生成 token/写 `.env`（0.0.0.0:8765，
+工作根 `%USERPROFILE%\dsh-remote-gpu\data`）→ 后台启动 → 防火墙规则（Private）
+→ 打印 Mac 侧连接命令。
+
+参数：
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `-Token '<token>'` | 自动生成 | 复用 Mac 上 `~/.dsh-remote-gpu/token` 的内容，省去两端改 token |
+| `-InstallDir <path>` | `%USERPROFILE%\dsh-remote-gpu` | 安装目录 |
+| `-InstallTorch:$false` | 安装 | 跳过 PyTorch（只跑 generic/健康检查） |
+| `-StartWorker:$false` | 启动 | 只安装不启动 |
+| `-OpenFirewall:$false` | 开启 | 不改 Windows 防火墙 |
+| `-Force` | 关闭 | 更新已存在的安装目录（覆盖代码，保留 `data/`、`logs/`、`.env`） |
+
+> 非管理员运行时脚本仍会安装/启动 Worker，但不会加防火墙规则；此时 Mac 无法跨机连接，
+> 需按 §5 手动执行 `New-NetFirewallRule` 或把网络配置为 Private。
+
 ## 0. 前置检查清单
 
 | 项 | 要求 | 检查命令（PowerShell） |
