@@ -55,10 +55,10 @@ python -c "import torch; print(torch.__version__, torch.cuda.is_available(), tor
 nvidia-smi
 ```
 
-Install the wheel that matches the driver, for example CUDA 12.4:
+RTX 50-series (Blackwell, including RTX 5060 Laptop) needs a CUDA 12.8+ PyTorch wheel; CUDA 12.4 wheels do not contain sm_120 kernels. Use cu128 (or newer) and a recent NVIDIA driver:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu124
+.\.venv\Scripts\python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu128
 ```
 
 Then verify through the worker:

@@ -8,7 +8,7 @@
     when no .env exists, and prints a CUDA/Torch diagnostic.
 
 .PARAMETER WithTorch
-    Also install PyTorch (CUDA 12.4 wheel) into the venv.
+    Also install PyTorch (CUDA 12.8 wheel, required for RTX 50-series / Blackwell) into the venv.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\scripts\install.ps1 -WithTorch
@@ -39,8 +39,8 @@ if (-not (Test-Path $python)) {
 & $python -m pip install -r (Join-Path $ProjectRoot "requirements-dev.txt")
 
 if ($WithTorch) {
-    Write-Host "installing PyTorch (CUDA 12.4) ..." -ForegroundColor Yellow
-    & $python -m pip install torch --index-url https://download.pytorch.org/whl/cu124
+    Write-Host "installing PyTorch (CUDA 12.8 / cu128, required for RTX 50-series) ..." -ForegroundColor Yellow
+    & $python -m pip install torch --index-url https://download.pytorch.org/whl/cu128
 }
 
 if (-not (Test-Path (Join-Path $ProjectRoot ".env"))) {
