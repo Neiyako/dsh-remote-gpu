@@ -52,6 +52,8 @@
 | `cd dsh-gpu-worker && python3 -m pytest -q` | 2026-11-07T14:19:08Z 起（`634148d`，worker 树其后未改） | 0 | 90 passed |
 | `cd dsh-gpu-worker && ../.venv-e2e/bin/python -m pytest -q` | 同上 | 0 | 89 passed, 1 skipped |
 | `cd dsh-remote-gpu && node --check index.js && node --test` | 2026-11-07T14:22Z 起 | 0 | 20 passed, 0 fail |
+| **提交后复跑** `python3 e2e/run_e2e.py`（HEAD=`2e26ba5`） | 2026-11-07T14:24:53Z 起 | **0** | 16 PASS / 0 FAIL（已提交的 harness 版本） |
+| **提交后复跑** `node e2e/plugin_e2e.mjs`（HEAD=`2e26ba5`） | 同上 | **0** | 16 PASS / 0 FAIL（`TOTAL: 16 PASS, 0 FAIL`） |
 
 跳过说明：`.venv-e2e` 里装了 torch，`tests/test_cuda.py:59` 的 “torch 不可用” 断言无法构造，故 skip
 （system python 无 torch，该路径由 90 passed 的完整跑覆盖）。
