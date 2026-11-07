@@ -1,0 +1,11 @@
+# Runtime dependencies of the DSH remote GPU worker.
+fastapi>=0.110,<1.0
+uvicorn>=0.20
+pydantic>=2.5,<3.0
+
+# PyTorch is NOT installed by default: training/inference tasks need it, but a
+# CPU-only dev machine can still run the server, generic_python jobs and tests.
+# On the GPU worker install the CUDA build matching the driver, e.g.:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+# torch>=2.0
+# numpy>=1.24

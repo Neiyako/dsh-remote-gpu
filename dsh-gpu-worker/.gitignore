@@ -1,0 +1,14 @@
+# Local secrets / runtime data — never commit.
+.env
+.venv/
+worker.db
+worker.db-wal
+worker.db-shm
+experiments/
+datasets/
+logs/
+
+# Python / test caches
+__pycache__/
+*.pyc
+.pytest_cache/

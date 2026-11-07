@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsh-gpu-worker"
+version = "0.1.0"
+description = "Independent DSH remote GPU worker: FastAPI task server with subprocess-isolated training/inference/generic execution."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.110,<1.0",
+    "uvicorn>=0.20",
+    "pydantic>=2.5,<3.0",
+]
+
+[project.optional-dependencies]
+# PyTorch is only needed for training/inference tasks and must be installed
+# on the GPU worker with the matching CUDA build.
+torch = ["torch>=2.0", "numpy>=1.24"]
+dev = ["pytest>=8.0", "httpx>=0.24"]
+
+[project.scripts]
+dsh-gpu-worker = "worker.main:main"
+
+[tool.setuptools]
+packages = ["worker", "worker.executors"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["ignore::DeprecationWarning"]
