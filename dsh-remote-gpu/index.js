@@ -63,12 +63,17 @@ export function expandHome(file, home = os.homedir()) {
   return file
 }
 
-/** 归一化配置：baseUrl/tokenEnv/tokenFile/timeoutMs。 */
-export function resolveConfig(raw = {}) {
+/** 归一化配置：baseUrl/baseUrlEnv/tokenEnv/tokenFile/timeoutMs。 */
+export function resolveConfig(raw = {}, env = process.env) {
   const config = raw ?? {}
-  const baseUrl = typeof config.baseUrl === 'string' && config.baseUrl.trim() !== ''
-    ? config.baseUrl.trim().replace(/\/+$/, '')
+  const baseUrlEnv = typeof config.baseUrlEnv === 'string' && config.baseUrlEnv.trim() !== ''
+    ? config.baseUrlEnv.trim()
+    : 'DSH_GPU_WORKER_URL'
+  const envBaseUrl = typeof env?.[baseUrlEnv] === 'string' ? env[baseUrlEnv].trim() : ''
+  const configuredBaseUrl = typeof config.baseUrl === 'string' && config.baseUrl.trim() !== ''
+    ? config.baseUrl.trim()
     : 'http://127.0.0.1:8765'
+  const baseUrl = (envBaseUrl || configuredBaseUrl).replace(/\/+$/, '')
   const tokenEnv = typeof config.tokenEnv === 'string' && config.tokenEnv.trim() !== ''
     ? config.tokenEnv.trim()
     : 'DSH_GPU_WORKER_TOKEN'
@@ -77,7 +82,7 @@ export function resolveConfig(raw = {}) {
     : expandHome('~/.dsh-remote-gpu/token')
   const rawTimeout = Number(config.timeoutMs)
   const timeoutMs = Number.isFinite(rawTimeout) && rawTimeout > 0 ? Math.floor(rawTimeout) : DEFAULT_TIMEOUT_MS
-  return { baseUrl, tokenEnv, tokenFile, timeoutMs }
+  return { baseUrl, baseUrlEnv, tokenEnv, tokenFile, timeoutMs }
 }
 
 function fail(code, message, details) {

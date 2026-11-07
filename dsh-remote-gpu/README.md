@@ -71,6 +71,7 @@ node --test
 | 字段 | 默认 | 说明 |
 |---|---|---|
 | `baseUrl` | `http://127.0.0.1:8765` | Worker 基地址（尾部 `/` 自动去掉） |
+| `baseUrlEnv` | `DSH_GPU_WORKER_URL` | 若该环境变量非空则覆盖 `baseUrl`（Mac 侧跨机切换更方便） |
 | `tokenEnv` | `DSH_GPU_WORKER_TOKEN` | 凭证环境变量名 |
 | `tokenFile` | `~/.dsh-remote-gpu/token` | 环境变量缺失时的兜底凭证文件（`~` 会展开，内容 trim） |
 | `timeoutMs` | `30000` | 单次请求超时（毫秒），超时返回 `WORKER_TIMEOUT` |
@@ -83,12 +84,20 @@ node --test
       name: dsh-remote-gpu
       config:
         baseUrl: http://192.168.1.20:8765
+        baseUrlEnv: DSH_GPU_WORKER_URL
         tokenEnv: DSH_GPU_WORKER_TOKEN
         tokenFile: ~/.dsh-remote-gpu/token
         timeoutMs: 30000
 ```
 
 ## 凭证与环境变量
+
+Mac 侧跨机配置（推荐全部用环境变量，不硬编码）：
+
+```bash
+export DSH_GPU_WORKER_URL='http://192.168.1.20:8765'   # 覆盖 baseUrl
+export DSH_GPU_WORKER_TOKEN='<worker-token>'
+```
 
 凭证解析顺序（**不得硬编码 token**）：
 

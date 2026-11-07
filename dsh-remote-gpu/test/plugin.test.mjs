@@ -18,6 +18,8 @@ import { apply, resolveConfig, resolveToken } from '../index.js'
 
 const TOKEN = 'test-token-abc123'
 const ENV_NAME = 'DSH_REMOTE_GPU_TEST_TOKEN'
+const URL_ENV_NAME = 'DSH_GPU_WORKER_URL'
+delete process.env[URL_ENV_NAME]
 const TOOL_NAMES = [
   'remote_gpu_health',
   'remote_gpu_gpu_info',
@@ -147,6 +149,7 @@ test('注册且仅注册 8 个工具，schema 与 text render 完整', () => {
 test('resolveConfig 默认值与 ~ 展开正确', () => {
   const config = resolveConfig({})
   assert.equal(config.baseUrl, 'http://127.0.0.1:8765')
+  assert.equal(config.baseUrlEnv, 'DSH_GPU_WORKER_URL')
   assert.equal(config.tokenEnv, 'DSH_GPU_WORKER_TOKEN')
   assert.equal(config.tokenFile, path.join(os.homedir(), '.dsh-remote-gpu', 'token'))
   assert.equal(config.timeoutMs, 30000)
@@ -161,6 +164,19 @@ test('resolveConfig 默认值与 ~ 展开正确', () => {
   assert.equal(custom.tokenEnv, 'MY_TOKEN')
   assert.equal(custom.tokenFile, path.join(os.homedir(), 'secret', 'token'))
   assert.equal(custom.timeoutMs, 500)
+})
+
+test('DSH_GPU_WORKER_URL 环境变量覆盖 baseUrl（Mac 侧无需改配置）', () => {
+  const saved = process.env[URL_ENV_NAME]
+  try {
+    process.env[URL_ENV_NAME] = 'http://172.20.10.99:8765/'
+    const config = resolveConfig({ baseUrl: 'http://127.0.0.1:8765' })
+    assert.equal(config.baseUrl, 'http://172.20.10.99:8765')
+    assert.equal(config.baseUrlEnv, URL_ENV_NAME)
+  } finally {
+    if (saved === undefined) delete process.env[URL_ENV_NAME]
+    else process.env[URL_ENV_NAME] = saved
+  }
 })
 
 // ---------------------------------------------------------------------------
