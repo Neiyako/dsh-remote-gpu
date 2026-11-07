@@ -13,7 +13,7 @@
 | HTTP 层 E2E（`e2e/run_e2e.py`） | **16 / 16 PASS，0 FAIL，exit 0** |
 | 插件层 E2E（`e2e/plugin_e2e.mjs`） | **16 / 16 PASS，0 FAIL，exit 0** |
 | Worker 接口/单元测试 | `python3 -m pytest -q` **90 passed**；`.venv-e2e` **89 passed, 1 skipped** |
-| 插件单元测试 | `node --test` **20 passed, 0 fail** |
+| 插件单元测试 | `node --test` **21 passed, 0 fail** |
 | 用户验收 1-10 | **8 PASS，2 NOT_RUN**（1、3 需要真实 Windows/CUDA 机器） |
 
 用户验收逐条状态：
@@ -52,7 +52,7 @@
 | **d280a2a 后复跑** `python3 e2e/run_e2e.py` / `node e2e/plugin_e2e.mjs` | 2026-11-07T14:29Z | **0 / 0** | 16 PASS / 16 PASS（GPU 指标 fallback 不影响 CPU E2E） |
 | `cd dsh-gpu-worker && python3 -m pytest -q` | 2026-11-07T14:19:08Z 起（`634148d`，worker 树其后未改） | 0 | 90 passed |
 | `cd dsh-gpu-worker && ../.venv-e2e/bin/python -m pytest -q` | 同上 | 0 | 89 passed, 1 skipped |
-| `cd dsh-remote-gpu && node --check index.js && node --test` | 2026-11-07T14:22Z 起 | 0 | 20 passed, 0 fail |
+| `cd dsh-remote-gpu && node --check index.js && node --test` | 2026-11-07T14:22Z 起 | 0 | 21 passed, 0 fail |
 | **提交后复跑** `python3 e2e/run_e2e.py`（HEAD=`2e26ba5`） | 2026-11-07T14:24:53Z 起 | **0** | 16 PASS / 0 FAIL（已提交的 harness 版本） |
 | **提交后复跑** `node e2e/plugin_e2e.mjs`（HEAD=`2e26ba5`） | 同上 | **0** | 16 PASS / 0 FAIL（`TOTAL: 16 PASS, 0 FAIL`） |
 
@@ -110,7 +110,8 @@ T16 产物完整性：`model.pt`、`best_model.pt`、`metrics.json`、`config.js
 | P16 | `baseUrlEnv` 环境变量覆盖 baseUrl | PASS | `E2E_WORKER_URL=http://127.0.0.1:8766 wins over config.baseUrl; env unset -> falls back to config.baseUrl and reports WORKER_UNREACHABLE` |
 
 P16 说明：`baseUrlEnv`（默认 `DSH_GPU_WORKER_URL`）在 `apply()` 注册工具时解析一次；
-跨机切换 IP 后需重启 DSH 宿主/重新加载插件才生效（已写入 `docs/DEPLOY-WINDOWS.md` §7.2 配置表）。
+更推荐 `baseUrlFile`（默认 `~/.dsh-remote-gpu/url`），它在**每次工具调用**时重新读取，
+Mac 侧写入新 IP 后无需重启 DSH（见 `docs/DEPLOY-WINDOWS.md` §7.2 与插件 README）。
 
 ## 6. Worker 接口/单元测试
 

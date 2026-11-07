@@ -176,7 +176,7 @@ cd dsh-gpu-worker && python3 -m pytest -q          # 90 passed
 cd dsh-gpu-worker && ../.venv-e2e/bin/python -m pytest -q   # 89 passed, 1 skipped（torch 已装时跳过 torch-unavailable 用例）
 
 # 插件单元测试（假 HTTP server，不联网）
-cd dsh-remote-gpu && node --check index.js && node --test    # 20 cases
+cd dsh-remote-gpu && node --check index.js && node --test    # 21 cases
 
 # HTTP 层端到端（自起 worker 于 127.0.0.1:8766，临时 root/token，15 项检查）
 python3 e2e/run_e2e.py
