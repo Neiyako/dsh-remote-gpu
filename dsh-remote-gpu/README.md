@@ -1,6 +1,6 @@
 # dsh-remote-gpu
 
-DSH Host 插件：把独立 GPU Worker 的 HTTP API 暴露成 8 个 `remote_gpu.*` 工具。
+DSH Host 插件：把独立 GPU Worker 的 HTTP API 暴露成 8 个 `remote_gpu_*` 工具。
 Worker API 契约见 [`../docs/CONTRACT.md`](../docs/CONTRACT.md) §2、§6。
 
 - **Host-only**：只通过 `ctx.tools.register` 注册工具，不新增路由、不改内置包、不改 provider/profile 配置；移除 bundle 即恢复原样。
@@ -11,14 +11,16 @@ Worker API 契约见 [`../docs/CONTRACT.md`](../docs/CONTRACT.md) §2、§6。
 
 | 工具 | HTTP 调用 | 说明 |
 |---|---|---|
-| `remote_gpu.health` | `GET /health` | Worker 状态、版本、`cuda_available`、活跃/排队任务 |
-| `remote_gpu.gpu_info` | `GET /gpu` | CUDA 可用性、设备列表、显存/利用率/温度 |
-| `remote_gpu.submit` | `POST /tasks` | 提交 `training` / `inference` / `generic_python`，立即返回 TaskView |
-| `remote_gpu.status` | `GET /tasks/{task_id}` | 状态、progress、error |
-| `remote_gpu.logs` | `GET /tasks/{task_id}/logs?offset=&limit=` | 分页日志（offset ≥ 0，limit 1..2000） |
-| `remote_gpu.cancel` | `POST /tasks/{task_id}/cancel` | 取消 PENDING/RUNNING 任务 |
-| `remote_gpu.result` | `GET /tasks/{task_id}/result` | 终态结果（metrics/artifacts/experiment_dir） |
-| `remote_gpu.artifacts` | `GET /tasks/{task_id}/artifacts` | 产物列表（path/size/sha256/download_url） |
+| `remote_gpu_health` | `GET /health` | Worker 状态、版本、`cuda_available`、活跃/排队任务 |
+| `remote_gpu_gpu_info` | `GET /gpu` | CUDA 可用性、设备列表、显存/利用率/温度 |
+| `remote_gpu_submit` | `POST /tasks` | 提交 `training` / `inference` / `generic_python`，立即返回 TaskView |
+| `remote_gpu_status` | `GET /tasks/{task_id}` | 状态、progress、error |
+| `remote_gpu_logs` | `GET /tasks/{task_id}/logs?offset=&limit=` | 分页日志（offset ≥ 0，limit 1..2000） |
+| `remote_gpu_cancel` | `POST /tasks/{task_id}/cancel` | 取消 PENDING/RUNNING 任务 |
+| `remote_gpu_result` | `GET /tasks/{task_id}/result` | 终态结果（metrics/artifacts/experiment_dir） |
+| `remote_gpu_artifacts` | `GET /tasks/{task_id}/artifacts` | 产物列表（path/size/sha256/download_url） |
+
+工具名只能含 `[A-Za-z0-9_-]`（DeepSeek API 对 tools[].name 的校验），不能用点号。
 
 所有工具输出统一为：
 
@@ -34,7 +36,7 @@ Worker API 契约见 [`../docs/CONTRACT.md`](../docs/CONTRACT.md) §2、§6。
 
 并带 text render（JSON 美化），便于直接在对话里阅读。
 
-`remote_gpu.submit` 参数：`task_type`（枚举）、`config`（对象）、`name`、`timeout_seconds`（10..86400）、`idempotency_key`，后三者按需透传，不做本地改名。
+`remote_gpu_submit` 参数：`task_type`（枚举）、`config`（对象）、`name`、`timeout_seconds`（10..86400）、`idempotency_key`，后三者按需透传，不做本地改名。
 
 ## 安装（由 Lead/owner 执行）
 
@@ -54,7 +56,7 @@ Worker API 契约见 [`../docs/CONTRACT.md`](../docs/CONTRACT.md) §2、§6。
            timeoutMs: 30000
    ```
 
-3. 重启/刷新 DSH 宿主后，工具列表应出现上述 8 个 `remote_gpu.*` 工具。
+3. 重启/刷新 DSH 宿主后，工具列表应出现上述 8 个 `remote_gpu_*` 工具。
 
 安装前可选离线自检（本目录内，不联网、不写 profile）：
 
@@ -133,7 +135,7 @@ Worker 侧所有接口（含 `/health`、`/gpu`）都需要认证；本插件每
 1. 用 `plugin_manager` 禁用或移除 `dsh-remote-gpu` bundle（profile 配置改动由 Lead 执行）；
 2. 移除后 `cordis.patch.yml` 的 insert 项不再生效，8 个工具消失，DSH 恢复原行为；
 3. 如手工把 patch 写进了 profile，删除 `id: remote-gpu` 对应 insert 块，重启宿主；
-4. 重启后确认工具列表不再包含 `remote_gpu.*`。
+4. 重启后确认工具列表不再包含 `remote_gpu_*`。
 
 回滚不影响 Worker 侧任务与数据。
 
@@ -151,7 +153,7 @@ node --test            # 或 npm test
 
 ## 已知限制
 
-- 只做 API 客户端，不做任务编排/重试/轮询；需要时由调用方（agent）轮询 `remote_gpu.status`。
-- 不支持二进制产物下载：`remote_gpu.artifacts` 只返回列表与 `download_url`，下载请用 Worker 提供的 URL（或后续工具扩展）。
+- 只做 API 客户端，不做任务编排/重试/轮询；需要时由调用方（agent）轮询 `remote_gpu_status`。
+- 不支持二进制产物下载：`remote_gpu_artifacts` 只返回列表与 `download_url`，下载请用 Worker 提供的 URL（或后续工具扩展）。
 - 无本地缓存 / 无离线模式；每次工具调用都实时请求 Worker。
 - `INTERNAL_ERROR` 分支只兜底未预期异常，正常契约路径不会触发。

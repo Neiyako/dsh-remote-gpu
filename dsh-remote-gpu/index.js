@@ -2,7 +2,7 @@
  * dsh-remote-gpu — Host half.
  *
  * 把独立 GPU Worker 的 HTTP API（docs/CONTRACT.md §2）暴露成 8 个 DSH 工具：
- *   remote_gpu.health / gpu_info / submit / status / logs / cancel / result / artifacts
+ *   remote_gpu_health / gpu_info / submit / status / logs / cancel / result / artifacts
  *
  * 设计边界：
  *   - 只注册工具，不改内置包、不改 provider/profile 配置；禁用 bundle 即恢复原样。
@@ -311,7 +311,7 @@ export function toolDefinitions(config) {
 
   return [
     {
-      name: 'remote_gpu.health',
+      name: 'remote_gpu_health',
       description: '查询远程 GPU Worker 健康状态（GET /health）：status/version/cuda_available/active_tasks 等。注意 Worker 全部接口都需要 Bearer token。',
       parameters: NO_ARGS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -320,7 +320,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.gpu_info',
+      name: 'remote_gpu_gpu_info',
       description: '查询远程 GPU 信息（GET /gpu）：CUDA 是否可用、设备列表、显存/利用率/温度/driver 版本。',
       parameters: NO_ARGS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -329,7 +329,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.submit',
+      name: 'remote_gpu_submit',
       description: '向远程 GPU Worker 提交任务（POST /tasks）：training | inference | generic_python。提交后立即返回 TaskView，不等待训练完成；透传 timeout_seconds 与 idempotency_key。',
       parameters: SUBMIT_PARAMS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -361,7 +361,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.status',
+      name: 'remote_gpu_status',
       description: '查询远程任务状态（GET /tasks/{task_id}）：status/progress/error/result 摘要。',
       parameters: TASK_ID_PARAMS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -372,7 +372,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.logs',
+      name: 'remote_gpu_logs',
       description: '分页读取远程任务日志（GET /tasks/{task_id}/logs?offset=&limit=），返回 lines/next_offset/eof。',
       parameters: LOGS_PARAMS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -396,7 +396,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.cancel',
+      name: 'remote_gpu_cancel',
       description: '请求取消远程任务（POST /tasks/{task_id}/cancel）：PENDING/RUNNING 可取消，终态返回 409 TASK_ALREADY_FINISHED。',
       parameters: TASK_ID_PARAMS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -407,7 +407,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.result',
+      name: 'remote_gpu_result',
       description: '读取远程任务结果（GET /tasks/{task_id}/result）：终态返回 metrics/artifacts/experiment_dir；未终态返回 409 TASK_NOT_FINISHED。',
       parameters: TASK_ID_PARAMS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },
@@ -418,7 +418,7 @@ export function toolDefinitions(config) {
       },
     },
     {
-      name: 'remote_gpu.artifacts',
+      name: 'remote_gpu_artifacts',
       description: '列出远程任务产物（GET /tasks/{task_id}/artifacts）：path/size_bytes/sha256/download_url。',
       parameters: TASK_ID_PARAMS,
       output: { schema: TOOL_OUTPUT_SCHEMA, render: textRender },

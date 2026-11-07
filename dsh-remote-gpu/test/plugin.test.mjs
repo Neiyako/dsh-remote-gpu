@@ -19,14 +19,14 @@ import { apply, resolveConfig, resolveToken } from '../index.js'
 const TOKEN = 'test-token-abc123'
 const ENV_NAME = 'DSH_REMOTE_GPU_TEST_TOKEN'
 const TOOL_NAMES = [
-  'remote_gpu.health',
-  'remote_gpu.gpu_info',
-  'remote_gpu.submit',
-  'remote_gpu.status',
-  'remote_gpu.logs',
-  'remote_gpu.cancel',
-  'remote_gpu.result',
-  'remote_gpu.artifacts',
+  'remote_gpu_health',
+  'remote_gpu_gpu_info',
+  'remote_gpu_submit',
+  'remote_gpu_status',
+  'remote_gpu_logs',
+  'remote_gpu_cancel',
+  'remote_gpu_result',
+  'remote_gpu_artifacts',
 ]
 
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-remote-gpu-test-'))
@@ -185,7 +185,7 @@ test('health 携带 Bearer 认证头并原样返回结果', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl, { tokenFile: TOKEN_FILE }))
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
 
   assert.equal(worker.requests.length, 1)
   assert.equal(worker.requests[0].method, 'GET')
@@ -208,7 +208,7 @@ test('gpu_info 请求 GET /gpu', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.gpu_info').execute({})
+  const result = await getTool(registered, 'remote_gpu_gpu_info').execute({})
   assert.equal(result.ok, true)
   assert.deepEqual(result.result, { cuda_available: false, device_count: 0, devices: [], error: 'no CUDA' })
 })
@@ -229,7 +229,7 @@ test('submit 以 JSON POST /tasks 透传 config/name/timeout_seconds/idempotency
 
   const configInput = { epochs: 2, dataset: { dataset_id: 'synthetic' }, device: 'cpu' }
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.submit').execute({
+  const result = await getTool(registered, 'remote_gpu_submit').execute({
     task_type: 'training',
     config: configInput,
     name: 'smoke',
@@ -262,7 +262,7 @@ test('submit 缺省只发送 task_type 与空 config', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.submit').execute({ task_type: 'generic_python' })
+  const result = await getTool(registered, 'remote_gpu_submit').execute({ task_type: 'generic_python' })
   assert.equal(result.ok, true)
   assert.deepEqual(JSON.parse(worker.requests[0].body), { task_type: 'generic_python', config: {} })
 })
@@ -276,7 +276,7 @@ test('submit 本地校验非法参数且不发请求', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const submit = getTool(registered, 'remote_gpu.submit')
+  const submit = getTool(registered, 'remote_gpu_submit')
   for (const args of [
     { task_type: 'not_a_type' },
     { task_type: 'training', config: [] },
@@ -324,29 +324,29 @@ test('status/logs/cancel/result/artifacts 映射到契约路径与查询参数',
   const { registered } = loadPlugin(configFor(worker.baseUrl))
   const taskId = 'task 1/2'
 
-  const status = await getTool(registered, 'remote_gpu.status').execute({ task_id: taskId })
+  const status = await getTool(registered, 'remote_gpu_status').execute({ task_id: taskId })
   assert.equal(status.ok, true)
   assert.equal(status.result.status, 'RUNNING')
   assert.equal(worker.requests.at(-1).method, 'GET')
   assert.equal(worker.requests.at(-1).url, '/tasks/task%201%2F2')
 
-  const logs = await getTool(registered, 'remote_gpu.logs').execute({ task_id: taskId, offset: 120, limit: 10 })
+  const logs = await getTool(registered, 'remote_gpu_logs').execute({ task_id: taskId, offset: 120, limit: 10 })
   assert.equal(logs.ok, true)
   assert.equal(worker.requests.at(-1).url, '/tasks/task%201%2F2/logs?offset=120&limit=10')
 
-  const cancel = await getTool(registered, 'remote_gpu.cancel').execute({ task_id: taskId })
+  const cancel = await getTool(registered, 'remote_gpu_cancel').execute({ task_id: taskId })
   assert.equal(cancel.ok, true)
   assert.equal(cancel.result.status, 'CANCELLED')
   assert.equal(worker.requests.at(-1).method, 'POST')
   assert.equal(worker.requests.at(-1).url, '/tasks/task%201%2F2/cancel')
   assert.equal(worker.requests.at(-1).body, '')
 
-  const result = await getTool(registered, 'remote_gpu.result').execute({ task_id: taskId })
+  const result = await getTool(registered, 'remote_gpu_result').execute({ task_id: taskId })
   assert.equal(result.ok, true)
   assert.equal(result.result.status, 'SUCCEEDED')
   assert.equal(worker.requests.at(-1).url, '/tasks/task%201%2F2/result')
 
-  const artifacts = await getTool(registered, 'remote_gpu.artifacts').execute({ task_id: taskId })
+  const artifacts = await getTool(registered, 'remote_gpu_artifacts').execute({ task_id: taskId })
   assert.equal(artifacts.ok, true)
   assert.equal(worker.requests.at(-1).url, '/tasks/task%201%2F2/artifacts')
 })
@@ -360,7 +360,7 @@ test('logs 本地校验 offset/limit 与缺失 task_id', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const logs = getTool(registered, 'remote_gpu.logs')
+  const logs = getTool(registered, 'remote_gpu_logs')
   for (const args of [
     {},
     { task_id: '' },
@@ -391,7 +391,7 @@ test('非 2xx 返回 WORKER_HTTP_ERROR，保留 status 与 worker 错误 body', 
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.result').execute({ task_id: 'task-x' })
+  const result = await getTool(registered, 'remote_gpu_result').execute({ task_id: 'task-x' })
 
   assert.equal(result.ok, false, '非 2xx 绝不能 ok:true')
   assert.equal(result.error.code, 'WORKER_HTTP_ERROR')
@@ -414,7 +414,7 @@ test('401 也算失败并透出 Worker 错误码', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, false)
   assert.equal(result.error.code, 'WORKER_HTTP_ERROR')
   assert.match(result.error.message, /HTTP 401/)
@@ -430,7 +430,7 @@ test('不可达端口返回 WORKER_UNREACHABLE', async (t) => {
   const { registered } = loadPlugin(configFor(`http://127.0.0.1:${deadPort}`, { timeoutMs: 1000 }))
   t.after(() => setEnvToken(undefined))
 
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, false, '不可达绝不能 ok:true')
   assert.equal(result.error.code, 'WORKER_UNREACHABLE')
   assert.equal(result.error.details.method, 'GET')
@@ -450,7 +450,7 @@ test('fake server 延迟超过 timeoutMs 返回 WORKER_TIMEOUT', async (t) => {
 
   const { registered } = loadPlugin(configFor(worker.baseUrl, { timeoutMs: 80 }))
   const startedAt = Date.now()
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   const elapsed = Date.now() - startedAt
 
   assert.equal(result.ok, false, '超时绝不能 ok:true')
@@ -471,7 +471,7 @@ test('200 但响应体不是 JSON 返回 WORKER_BAD_RESPONSE', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.status').execute({ task_id: 'task-1' })
+  const result = await getTool(registered, 'remote_gpu_status').execute({ task_id: 'task-1' })
   assert.equal(result.ok, false, '坏 JSON 绝不能 ok:true')
   assert.equal(result.error.code, 'WORKER_BAD_RESPONSE')
   assert.match(result.error.message, /not-json/)
@@ -489,7 +489,7 @@ test('200 但响应体为空也返回 WORKER_BAD_RESPONSE', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, false)
   assert.equal(result.error.code, 'WORKER_BAD_RESPONSE')
 })
@@ -515,7 +515,7 @@ test('tokenFile 兜底：env 未设置时读取文件并 trim', async (t) => {
   assert.equal(credential.source, `file:${TOKEN_FILE}`)
 
   const { registered } = loadPlugin(config)
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, true)
   assert.equal(worker.requests[0].headers.authorization, 'Bearer file-token-xyz')
 })
@@ -531,7 +531,7 @@ test('env 凭证优先于 tokenFile', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl, { tokenFile: TOKEN_FILE }))
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, true)
   assert.equal(worker.requests[0].headers.authorization, `Bearer ${TOKEN}`)
 })
@@ -545,7 +545,7 @@ test('无凭证返回 CONFIG_MISSING 且不发出任何请求', async (t) => {
   })
 
   const { registered } = loadPlugin(configFor(worker.baseUrl))
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, false, '缺凭证绝不能 ok:true')
   assert.equal(result.error.code, 'CONFIG_MISSING')
   assert.match(result.error.message, new RegExp(ENV_NAME))
@@ -562,7 +562,7 @@ test('非法 baseUrl 触发内部异常时返回 INTERNAL_ERROR 而不是抛出'
   t.after(() => setEnvToken(undefined))
 
   const { registered } = loadPlugin(configFor('not-a-valid-url'))
-  const result = await getTool(registered, 'remote_gpu.health').execute({})
+  const result = await getTool(registered, 'remote_gpu_health').execute({})
   assert.equal(result.ok, false)
   assert.equal(result.error.code, 'INTERNAL_ERROR')
   assert.equal(typeof result.error.message, 'string')
