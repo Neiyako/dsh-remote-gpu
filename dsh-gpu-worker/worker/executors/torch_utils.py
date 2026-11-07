@@ -8,6 +8,8 @@ from __future__ import annotations
 import csv
 import platform
 import random
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Iterator
@@ -60,8 +62,41 @@ def seed_everything(torch, seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
+def _nvidia_smi_metrics() -> dict[str, Any]:
+    """Fallback for drivers where pynvml is unavailable (common on Windows)."""
+    executable = shutil.which("nvidia-smi")
+    if not executable:
+        return {}
+    try:
+        result = subprocess.run(
+            [
+                executable,
+                "--query-gpu=utilization.gpu,memory.used",
+                "--format=csv,noheader,nounits",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=3,
+            check=False,
+        )
+        first = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
+        parts = [part.strip() for part in first.split(",")]
+        if len(parts) < 2:
+            return {}
+        return {
+            "gpu_utilization_percent": float(parts[0]),
+            "gpu_memory_used_mb": round(float(parts[1]), 1),
+        }
+    except (OSError, ValueError, IndexError, subprocess.TimeoutExpired):
+        return {}
+
+
 def gpu_metrics(torch, device: str) -> dict[str, Any]:
-    """Best-effort live GPU utilization/memory for progress payloads."""
+    """Best-effort live GPU utilization/memory for progress payloads.
+
+    Preference order: torch runtime -> pynvml -> ``nvidia-smi``. The last one
+    matters on Windows, where pynvml is often not installed but nvidia-smi is.
+    """
     if not device.startswith("cuda"):
         return {}
     metrics: dict[str, Any] = {}
@@ -82,6 +117,12 @@ def gpu_metrics(torch, device: str) -> dict[str, Any]:
             pynvml.nvmlShutdown()
         except Exception:
             utilization = None
+    if utilization is None or metrics.get("gpu_memory_used_mb") is None:
+        smi = _nvidia_smi_metrics()
+        if utilization is None:
+            utilization = smi.get("gpu_utilization_percent")
+        if metrics.get("gpu_memory_used_mb") is None:
+            metrics["gpu_memory_used_mb"] = smi.get("gpu_memory_used_mb")
     metrics["gpu_utilization_percent"] = utilization
     return metrics
 
