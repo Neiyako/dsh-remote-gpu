@@ -191,6 +191,15 @@ $envLines = @(
     "DSH_GPU_WORKER_ALLOW_GENERIC_PYTHON=true"
 )
 Set-Content -Path $envFile -Value $envLines -Encoding ASCII
+
+# `python -m worker` reads real environment variables (it does not parse .env),
+# so export the same values into this process before starting the child.
+$env:DSH_GPU_WORKER_TOKEN = $Token
+$env:DSH_GPU_WORKER_HOST = '0.0.0.0'
+$env:DSH_GPU_WORKER_PORT = '8765'
+$env:DSH_GPU_WORKER_ROOT = $dataDir
+$env:DSH_GPU_WORKER_MAX_CONCURRENT_TASKS = '1'
+$env:DSH_GPU_WORKER_ALLOW_GENERIC_PYTHON = 'true'
 try {
     & icacls $envFile /inheritance:r /grant:r "$($env:USERNAME):(R,W)" | Out-Null
 } catch {
