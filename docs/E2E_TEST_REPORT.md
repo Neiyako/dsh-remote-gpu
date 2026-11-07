@@ -1,7 +1,7 @@
 # E2E 验收报告 — DSH Remote GPU
 
 > 报告生成时间：2026-11-07T22:25+08:00（UTC 2026-11-07T14:25Z）
-> 代码基线：`be42e54`（插件 `DSH_GPU_WORKER_URL` 覆盖）；Worker 实现锁定于 `5707b78`
+> 代码基线：`d280a2a`（最终 HEAD；含 `nvidia-smi` GPU 指标 fallback）；插件 `DSH_GPU_WORKER_URL` 覆盖见 `be42e54`；Worker 核心实现见 `5707b78`
 > 本机：macOS Darwin arm64 27.0.1，**无 NVIDIA GPU**，`torch.cuda.is_available() == False`。
 > 本报告所有 PASS 均来自本机真实进程/真实 HTTP 调用，可复现命令见 §9；
 > **真实 Windows RTX 5060 跨机 CUDA 没有机器，严格记为 `NOT_RUN`，未用本机结果冒充。**
@@ -40,7 +40,7 @@
 | PyTorch | 2.15.0（CPU wheel），`torch.cuda.is_available() == False` |
 | Node | v24.14.1（插件自带 `node --test`、内置 `fetch`） |
 | Worker | `dsh-gpu-worker` v0.1.0，监听 `127.0.0.1:8766`（自起；8765 留给 DSH 演示 server） |
-| 代码基线 | `be42e54`（最终运行 HEAD）；Worker 锁定 commit `5707b78`；另有 `632eb3f` 文档、`634148d` 工具名规范化 |
+| 代码基线 | `d280a2a`（最终 HEAD）；Worker 核心 commit `5707b78`；插件 env 覆盖 `be42e54`；另有 `632eb3f` 文档、`634148d` 工具名规范化 |
 | 端口隔离 | E2E 只用 8766 / 动态空闲端口；错误端口测试用 `bind(0)` 现取的未被占用端口，避免与 8765 冲突 |
 
 ## 3. 运行命令与退出码（最终一轮）
@@ -49,6 +49,7 @@
 |---|---|---|---|
 | `python3 e2e/run_e2e.py --json /tmp/e2e-final2.json` | 2026-11-07T14:22:29Z 起 | **0** | 16 PASS / 0 FAIL |
 | `node e2e/plugin_e2e.mjs` | 2026-11-07T14:23:31Z–14:24:06Z | **0** | 16 PASS / 0 FAIL |
+| **d280a2a 后复跑** `python3 e2e/run_e2e.py` / `node e2e/plugin_e2e.mjs` | 2026-11-07T14:29Z | **0 / 0** | 16 PASS / 16 PASS（GPU 指标 fallback 不影响 CPU E2E） |
 | `cd dsh-gpu-worker && python3 -m pytest -q` | 2026-11-07T14:19:08Z 起（`634148d`，worker 树其后未改） | 0 | 90 passed |
 | `cd dsh-gpu-worker && ../.venv-e2e/bin/python -m pytest -q` | 同上 | 0 | 89 passed, 1 skipped |
 | `cd dsh-remote-gpu && node --check index.js && node --test` | 2026-11-07T14:22Z 起 | 0 | 20 passed, 0 fail |
