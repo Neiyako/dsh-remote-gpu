@@ -28,9 +28,13 @@ Write-Host "project root: $ProjectRoot"
 $python = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 if (-not (Test-Path $python)) {
     Write-Host "creating virtual environment .venv ..."
-    py -3 -m venv .venv
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        py -3 -m venv .venv
+    } else {
+        python -m venv .venv
+    }
     if (-not (Test-Path $python)) {
-        throw "Failed to create .venv. Install Python 3.10+ and ensure the 'py' launcher is available."
+        throw "Failed to create .venv. Install Python 3.10+ and ensure 'py' or 'python' is on PATH."
     }
 }
 
