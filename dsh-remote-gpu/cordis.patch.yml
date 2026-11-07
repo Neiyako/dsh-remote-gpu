@@ -1,0 +1,11 @@
+# dsh-remote-gpu —— bundle patch
+# Host-only：只注册 8 个 remote_gpu.* 工具，直连远程 GPU Worker HTTP API。
+# 不修改内置包、不改 provider 配置；移除本 insert 项即恢复原样。
+- insert:
+    - id: remote-gpu
+      name: dsh-remote-gpu
+      config:
+        baseUrl: http://127.0.0.1:8765
+        tokenEnv: DSH_GPU_WORKER_TOKEN
+        tokenFile: ~/.dsh-remote-gpu/token
+        timeoutMs: 30000

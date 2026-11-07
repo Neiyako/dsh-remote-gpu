@@ -1,0 +1,28 @@
+{
+  "name": "dsh-remote-gpu",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DSH Host 插件：把远程 GPU Worker HTTP API 暴露为 8 个 remote_gpu.* 工具（health/gpu_info/submit/status/logs/cancel/result/artifacts）",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
