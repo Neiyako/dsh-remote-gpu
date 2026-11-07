@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
 
-import { apply, resolveConfig, resolveToken } from '../index.js'
+import { apply, currentBaseUrl, resolveConfig, resolveToken } from '../index.js'
 
 const TOKEN = 'test-token-abc123'
 const ENV_NAME = 'DSH_REMOTE_GPU_TEST_TOKEN'
@@ -105,6 +105,7 @@ function loadPlugin(config) {
 function configFor(baseUrl, extra = {}) {
   return {
     baseUrl,
+    baseUrlFile: MISSING_FILE,
     tokenEnv: ENV_NAME,
     tokenFile: MISSING_FILE,
     timeoutMs: 2000,
@@ -150,6 +151,7 @@ test('resolveConfig 默认值与 ~ 展开正确', () => {
   const config = resolveConfig({})
   assert.equal(config.baseUrl, 'http://127.0.0.1:8765')
   assert.equal(config.baseUrlEnv, 'DSH_GPU_WORKER_URL')
+  assert.equal(config.baseUrlFile, path.join(os.homedir(), '.dsh-remote-gpu', 'url'))
   assert.equal(config.tokenEnv, 'DSH_GPU_WORKER_TOKEN')
   assert.equal(config.tokenFile, path.join(os.homedir(), '.dsh-remote-gpu', 'token'))
   assert.equal(config.timeoutMs, 30000)
@@ -164,6 +166,15 @@ test('resolveConfig 默认值与 ~ 展开正确', () => {
   assert.equal(custom.tokenEnv, 'MY_TOKEN')
   assert.equal(custom.tokenFile, path.join(os.homedir(), 'secret', 'token'))
   assert.equal(custom.timeoutMs, 500)
+})
+
+test('baseUrlFile 每次调用时重新读取（Mac 写文件即可切 Windows IP）', () => {
+  const urlFile = path.join(TMP, 'worker-url.txt')
+  fs.writeFileSync(urlFile, 'http://127.0.0.1:1/\n', 'utf8')
+  const config = resolveConfig({ baseUrl: 'http://127.0.0.1:8765', baseUrlFile: urlFile })
+  assert.equal(currentBaseUrl(config), 'http://127.0.0.1:1')
+  fs.writeFileSync(urlFile, 'http://127.0.0.1:2\n', 'utf8')
+  assert.equal(currentBaseUrl(config), 'http://127.0.0.1:2')
 })
 
 test('DSH_GPU_WORKER_URL 环境变量覆盖 baseUrl（Mac 侧无需改配置）', () => {

@@ -40,6 +40,8 @@ const UNREACHABLE_PORT = Number(process.env.E2E_PLUGIN_UNREACHABLE_PORT || 8769)
 const BASE = `http://${HOST}:${PORT}`
 const STARTUP_TIMEOUT_MS = 90_000
 
+const MISSING_URL_FILE = path.join(os.tmpdir(), 'dsh-remote-gpu-e2e-no-url-file')
+
 const EXPECTED_TOOLS = [
   'remote_gpu_health',
   'remote_gpu_gpu_info',
@@ -258,6 +260,7 @@ async function main() {
     const ctx = makeFakeCtx(registered)
     const dispose = apply(ctx, {
       baseUrl: BASE,
+      baseUrlFile: MISSING_URL_FILE,
       tokenEnv: 'DSH_GPU_WORKER_TOKEN',
       timeoutMs: 20000,
     })
@@ -431,6 +434,7 @@ async function main() {
       const store = []
       apply(makeFakeCtx(store), {
         baseUrl: `http://${HOST}:${unreachablePort}`,
+        baseUrlFile: MISSING_URL_FILE,
         tokenEnv: 'DSH_GPU_WORKER_TOKEN',
         timeoutMs: 3000,
       })
@@ -444,7 +448,7 @@ async function main() {
     await check('P13', 'wrong token -> ok:false WORKER_HTTP_ERROR(401 UNAUTHORIZED)', async () => {
       process.env.E2E_BAD_TOKEN = `${state.token}-wrong`
       const store = []
-      apply(makeFakeCtx(store), { baseUrl: BASE, tokenEnv: 'E2E_BAD_TOKEN', timeoutMs: 5000 })
+      apply(makeFakeCtx(store), { baseUrl: BASE, baseUrlFile: MISSING_URL_FILE, tokenEnv: 'E2E_BAD_TOKEN', timeoutMs: 5000 })
       const bad = toolsMap(store)
       const response = await callTool(bad, 'remote_gpu_health')
       assert(response.ok === false, 'wrong token must not report success')
@@ -459,6 +463,7 @@ async function main() {
       const store = []
       apply(makeFakeCtx(store), {
         baseUrl: BASE,
+        baseUrlFile: MISSING_URL_FILE,
         tokenEnv: 'E2E_MISSING_TOKEN',
         tokenFile: '~/.dsh-remote-gpu-e2e-does-not-exist/token',
       })
@@ -486,6 +491,7 @@ async function main() {
       const store = []
       apply(makeFakeCtx(store), {
         baseUrl: `http://${HOST}:1`, // deliberately wrong; env must win
+        baseUrlFile: MISSING_URL_FILE,
         baseUrlEnv: envName,
         tokenEnv: 'DSH_GPU_WORKER_TOKEN',
         timeoutMs: 5000,
@@ -501,6 +507,7 @@ async function main() {
       const fallbackStore = []
       apply(makeFakeCtx(fallbackStore), {
         baseUrl: `http://${HOST}:1`,
+        baseUrlFile: MISSING_URL_FILE,
         baseUrlEnv: `${envName}_UNSET`,
         tokenEnv: 'DSH_GPU_WORKER_TOKEN',
         timeoutMs: 3000,

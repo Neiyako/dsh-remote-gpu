@@ -343,6 +343,8 @@ chmod 600 ~/.dsh-remote-gpu/token
       name: dsh-remote-gpu
       config:
         baseUrl: http://192.168.1.20:8765   # Windows 机器内网 IP
+        baseUrlEnv: DSH_GPU_WORKER_URL
+        baseUrlFile: ~/.dsh-remote-gpu/url
         tokenEnv: DSH_GPU_WORKER_TOKEN
         tokenFile: ~/.dsh-remote-gpu/token
         timeoutMs: 30000
@@ -354,18 +356,22 @@ chmod 600 ~/.dsh-remote-gpu/token
 |---|---|---|
 | `baseUrl` | `http://127.0.0.1:8765` | Worker 基地址（尾部 `/` 自动去掉） |
 | `baseUrlEnv` | `DSH_GPU_WORKER_URL` | 该环境变量非空时**优先于** `baseUrl`（跨机切换 IP 不必改 patch） |
+| `baseUrlFile` | `~/.dsh-remote-gpu/url` | **每次工具调用**重新读取的 URL 文件；优先级 env > file > `baseUrl`，写文件后无需重启 DSH |
 | `tokenEnv` | `DSH_GPU_WORKER_TOKEN` | 凭证环境变量名 |
 | `tokenFile` | `~/.dsh-remote-gpu/token` | `tokenEnv` 缺失时的兜底凭证文件（`~` 展开、内容 trim） |
 | `timeoutMs` | `30000` | 单次请求超时（毫秒） |
 
-跨机快速切换（推荐给桌面端长期使用）：
+跨机快速切换（推荐给桌面端长期使用，无需重启 DSH）：
 
 ```bash
-export DSH_GPU_WORKER_URL='http://192.168.1.20:8765'
-export DSH_GPU_WORKER_TOKEN='<token>'
+mkdir -p ~/.dsh-remote-gpu
+printf '%s\n' 'http://192.168.1.20:8765' > ~/.dsh-remote-gpu/url
+printf '%s\n' '<token>' > ~/.dsh-remote-gpu/token
+chmod 600 ~/.dsh-remote-gpu/url ~/.dsh-remote-gpu/token
 ```
 
-启用/修改后重启 DSH 宿主，工具列表应出现 8 个 `remote_gpu_*` 工具。
+首次安装/启用插件后需重启一次 DSH 宿主；之后切换 URL/token 只写上述两个文件即可，
+下一次工具调用立即生效。工具列表应出现 8 个 `remote_gpu_*` 工具。
 用 `remote_gpu_health`、`remote_gpu_gpu_info` 先确认 `cuda_available: true` 和 RTX 5060 设备名。
 
 ### 7.3 跨机最小验证

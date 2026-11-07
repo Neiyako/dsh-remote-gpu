@@ -63,7 +63,7 @@ export function expandHome(file, home = os.homedir()) {
   return file
 }
 
-/** 归一化配置：baseUrl/baseUrlEnv/tokenEnv/tokenFile/timeoutMs。 */
+/** 归一化配置：baseUrl/baseUrlEnv/baseUrlFile/tokenEnv/tokenFile/timeoutMs。 */
 export function resolveConfig(raw = {}, env = process.env) {
   const config = raw ?? {}
   const baseUrlEnv = typeof config.baseUrlEnv === 'string' && config.baseUrlEnv.trim() !== ''
@@ -74,6 +74,9 @@ export function resolveConfig(raw = {}, env = process.env) {
     ? config.baseUrl.trim()
     : 'http://127.0.0.1:8765'
   const baseUrl = (envBaseUrl || configuredBaseUrl).replace(/\/+$/, '')
+  const baseUrlFile = typeof config.baseUrlFile === 'string' && config.baseUrlFile.trim() !== ''
+    ? expandHome(config.baseUrlFile.trim())
+    : expandHome('~/.dsh-remote-gpu/url')
   const tokenEnv = typeof config.tokenEnv === 'string' && config.tokenEnv.trim() !== ''
     ? config.tokenEnv.trim()
     : 'DSH_GPU_WORKER_TOKEN'
@@ -82,7 +85,23 @@ export function resolveConfig(raw = {}, env = process.env) {
     : expandHome('~/.dsh-remote-gpu/token')
   const rawTimeout = Number(config.timeoutMs)
   const timeoutMs = Number.isFinite(rawTimeout) && rawTimeout > 0 ? Math.floor(rawTimeout) : DEFAULT_TIMEOUT_MS
-  return { baseUrl, baseUrlEnv, tokenEnv, tokenFile, timeoutMs }
+  return { baseUrl, baseUrlEnv, baseUrlFile, tokenEnv, tokenFile, timeoutMs }
+}
+
+/**
+ * 解析当前请求要用的 baseUrl：环境变量 > URL 文件 > 配置。
+ * URL 文件在每次调用时重新读取，因此在 Mac 上写入新 Windows IP 后无需重启 DSH。
+ */
+export function currentBaseUrl(config, env = process.env) {
+  const fromEnv = typeof env?.[config.baseUrlEnv] === 'string' ? env[config.baseUrlEnv].trim() : ''
+  if (fromEnv !== '') return fromEnv.replace(/\/+$/, '')
+  try {
+    const fromFile = fs.readFileSync(config.baseUrlFile, 'utf8').trim()
+    if (fromFile !== '') return fromFile.replace(/\/+$/, '')
+  } catch {
+    // fall through to the static config
+  }
+  return config.baseUrl
 }
 
 function fail(code, message, details) {
@@ -136,7 +155,8 @@ export async function workerRequest(config, { method = 'GET', route, query, body
   const credential = resolveToken(config)
   if (!credential.ok) return credential
 
-  const url = new URL(`${config.baseUrl}${route}`)
+  const baseUrl = currentBaseUrl(config)
+  const url = new URL(`${baseUrl}${route}`)
   if (query !== undefined) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined && value !== null) url.searchParams.set(key, String(value))

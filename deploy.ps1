@@ -294,10 +294,12 @@ if ($health -ne $null) {
 }
 Write-Host ""
 Write-Host "On the Mac (DSH host), run:" -ForegroundColor Cyan
-Write-Host "  export DSH_GPU_WORKER_URL='$workerUrl'"
-Write-Host "  mkdir -p ~/.dsh-remote-gpu && printf '%s\n' '$Token' > ~/.dsh-remote-gpu/token && chmod 600 ~/.dsh-remote-gpu/token"
+Write-Host "  mkdir -p ~/.dsh-remote-gpu"
+Write-Host "  printf '%s\n' '$workerUrl' > ~/.dsh-remote-gpu/url"
+Write-Host "  printf '%s\n' '$Token' > ~/.dsh-remote-gpu/token"
+Write-Host "  chmod 600 ~/.dsh-remote-gpu/url ~/.dsh-remote-gpu/token"
 Write-Host ""
-Write-Host "Then restart/reload the DSH host so the plugin re-reads baseUrlEnv."
+Write-Host "No DSH restart is required: the plugin re-reads the URL file on every tool call."
 Write-Host ""
 Write-Host "GPU check on Windows:" -ForegroundColor Cyan
 Write-Host "  $python -c `"import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no-cuda')`""

@@ -7,6 +7,7 @@
       config:
         baseUrl: http://127.0.0.1:8765
         baseUrlEnv: DSH_GPU_WORKER_URL
+        baseUrlFile: ~/.dsh-remote-gpu/url
         tokenEnv: DSH_GPU_WORKER_TOKEN
         tokenFile: ~/.dsh-remote-gpu/token
         timeoutMs: 30000

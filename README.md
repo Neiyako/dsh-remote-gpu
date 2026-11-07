@@ -117,8 +117,11 @@ powershell -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::Security
 export DSH_GPU_WORKER_TOKEN='<worker token>'
 # 或：mkdir -p ~/.dsh-remote-gpu && printf '%s\n' '<token>' > ~/.dsh-remote-gpu/token && chmod 600 ~/.dsh-remote-gpu/token
 
-# 跨机时可用环境变量覆盖插件 baseUrl（默认 tokenEnv=DSH_GPU_WORKER_TOKEN、baseUrlEnv=DSH_GPU_WORKER_URL）
-export DSH_GPU_WORKER_URL='http://<windows-ip>:8765'
+# 跨机：写入 URL/token 文件（插件每次工具调用重新读取，无需重启 DSH）
+mkdir -p ~/.dsh-remote-gpu
+printf '%s\n' 'http://<windows-ip>:8765' > ~/.dsh-remote-gpu/url
+printf '%s\n' '<worker-token>' > ~/.dsh-remote-gpu/token
+chmod 600 ~/.dsh-remote-gpu/url ~/.dsh-remote-gpu/token
 ```
 
 `dsh-remote-gpu/cordis.patch.yml` 默认 `baseUrl: http://127.0.0.1:8765`；
