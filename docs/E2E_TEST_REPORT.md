@@ -1,7 +1,7 @@
 # E2E 验收报告 — DSH Remote GPU
 
 > 报告生成时间：2026-11-07T22:25+08:00（UTC 2026-11-07T14:25Z）
-> 代码基线：`d280a2a`（最终 HEAD；含 `nvidia-smi` GPU 指标 fallback）；插件 `DSH_GPU_WORKER_URL` 覆盖见 `be42e54`；Worker 核心实现见 `5707b78`
+> 代码基线：`d280a2a`（Worker 最终代码；含 `nvidia-smi` GPU 指标 fallback）；仓库最终 HEAD 见 `e06a8a9` 之后的 git log；插件 `DSH_GPU_WORKER_URL` 覆盖见 `be42e54`；Worker 核心实现见 `5707b78`
 > 本机：macOS Darwin arm64 27.0.1，**无 NVIDIA GPU**，`torch.cuda.is_available() == False`。
 > 本报告所有 PASS 均来自本机真实进程/真实 HTTP 调用，可复现命令见 §9；
 > **真实 Windows RTX 5060 跨机 CUDA 没有机器，严格记为 `NOT_RUN`，未用本机结果冒充。**
